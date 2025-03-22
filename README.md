@@ -43,21 +43,18 @@ A Task tracker with simple feature created as a learning project.
 If your application has a `main` method, you can run it like this:
 
 ```bash
-mvn exec:java -Dexec.mainClass="com.yourpackage.Main" -Dexec.args="arg1 arg2"
+mvn exec:java -Dexec.mainClass="org.example.Main" -Dexec.args="add 'laundry' "
 ```
 
 ### Option 2: Run the Compiled `.java` File Directly (Not Typical for Maven Projects)
 If you're running via `java Filename.java args`, do this:
 
 ```bash
-cd src/main/java
-java your/package/Filename.java arg1 arg2
+cd src/main/java/org/example/
+java Main.java add "laundry"
 ```
 
-### Option 3: Run the Packaged `.jar` File
-```bash
-java -jar target/your-app-name-version.jar arg1 arg2
-```
+
 
 ## 🛠 Project Structure
 
@@ -66,38 +63,62 @@ your-repo/
 ├── src/
 │   └── main/
 │       └── java/
-│           └── your/package/
+│           └── org/example/
 │               └── Main.java
 ├── pom.xml
 └── README.md
 ```
 
+---
+
 ## 📝 Example Usage
 
+You can run commands using Maven like this:
+
 ```bash
-java -jar target/your-app-name-version.jar input.txt output.txt
+mvn exec:java -Dexec.mainClass="org.example.Main" -Dexec.args="<command> [arguments]"
 ```
 
-## 🧑‍💻 Contributing
+Replace `<command>` and `[arguments]` with the specific operation you want to perform.
 
-1. Fork the repo
-2. Create a new branch (`git checkout -b feature-name`)
-3. Commit your changes (`git commit -m 'Add some feature'`)
-4. Push to the branch (`git push origin feature-name`)
-5. Open a Pull Request
 
-## 📄 License
+### 🔹 Adding a New Task
+```bash
+mvn exec:java -Dexec.mainClass="org.example.Main" -Dexec.args="add 'Buy groceries'"
+```
+**Output:**
+```
+Task added successfully (ID: 1)
+```
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+### 🔹 Updating a Task
+```bash
+mvn exec:java -Dexec.mainClass="org.example.Main" -Dexec.args="update 1 'Buy groceries and cook dinner'"
 ```
 
 ---
 
-## Notes:
-- Update the `mainClass` in the Maven command with your actual fully-qualified class name.
-- If you used Maven plugins like `exec-maven-plugin`, you can simplify the run command and include that setup in the README.
-- If people should *not* run with `java Filename.java` but rather via Maven or jar, clarify that for them.
+### 🔹 Deleting a Task
+```bash
+mvn exec:java -Dexec.mainClass="org.example.Main" -Dexec.args="delete 1"
+```
 
----
 
-Want me to tailor this README to your exact project name and main class? Let me know your GitHub repo name (if any), main class name, and any example arguments, and I can fill that in for you.
+### 🔹 Marking a Task as In Progress
+```bash
+mvn exec:java -Dexec.mainClass="org.example.Main" -Dexec.args="mark-in-progress 1"
+```
+
+
+### 🔹 Marking a Task as Done
+```bash
+mvn exec:java -Dexec.mainClass="org.example.Main" -Dexec.args="mark-done 1"
+```
+
+
+### 🔹 Listing All Tasks
+```bash
+mvn exec:java -Dexec.mainClass="org.example.Main" -Dexec.args="list"
+```
+
