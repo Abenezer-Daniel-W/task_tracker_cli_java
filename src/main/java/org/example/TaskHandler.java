@@ -11,71 +11,112 @@ public class TaskHandler {
     private final String dbFileName = "data/data.json";
     private JSONObject jsonObject;
     private JSONParser parser;
-    public TreeMap<Integer, String> taksIdMap;
+    private int nexID = 0;
 
 
-
-    public TaskHandler() throws IOException, ParseException {
+    public TaskHandler() {
         parser = new JSONParser();
 
-        FileReader reader = new FileReader(dbFileName);
+        try (FileReader reader = new FileReader(dbFileName)) {
+            Object parsed = parser.parse(reader);
 
-        JSONParser parser = new JSONParser();
-        jsonObject = (JSONObject) parser.parse(reader);
-        reader.close();
+            if (!(parsed instanceof JSONObject)) {
+                System.out.println("Error: The JSON structure is not a valid object.");
+                jsonObject = new JSONObject(); // Initialize to empty to avoid null issues
+                return;
+            }
 
-        taksIdMap = JsonToMap();
-    }
+            jsonObject = (JSONObject) parsed;
 
-    public String addTask(String taskName){
-        if (taskName  == null || taskName.isEmpty())
-            throw new IllegalArgumentException("takName is null or empty.");
-        int nextId = taksIdMap.lastKey()+1;
-        taksIdMap.put(nextId, taskName);
+            for (Object key : jsonObject.keySet()) {
+                try {
+                    nexID = Math.max(nexID, Integer.parseInt((String) key));
+                } catch (NumberFormatException e) {
+                    System.out.println("Warning: Invalid key found (not an integer): \"" + key + "\". Skipping this key.");
+                }
+            }
 
 
-        return  "Task (ID:"+nextId+") added Successfully.";
-
-    }
-
-    public String removeTask(int id){
-        if(!taksIdMap.containsKey(id)){
-            throw new NoSuchElementException("task Id not found.");
+        } catch (FileNotFoundException e) {
+            System.out.println("Warning: Database file \"" + dbFileName + "\" not found.");
+            jsonObject = new JSONObject();
+        } catch (IOException e) {
+            System.out.println("Error reading file \"" + dbFileName + "\": " + e.getMessage());
+            jsonObject = new JSONObject();
+        } catch (ParseException e) {
+            System.out.println("Error: Failed to parse JSON from file \"" + dbFileName + "\". The file may be empty or malformed.");
+            jsonObject = new JSONObject();
         }
-        taksIdMap.remove(id);
-        return  "Task (ID:"+id+") removed Successfully.";
     }
 
 
-    public String listTask(){
-        return taksIdMap.toString();
+    public String listTask() {
+        HashMap<String, JSONObject> map = jsonObjectToMap(jsonObject);
+        StringBuilder stringBuilder = new StringBuilder();
+
+        for (String key : map.keySet()) {
+            JSONObject value = map.get(key);
+
+            // Safely get the fields from the JSONObject
+            String description = (String) value.getOrDefault("description", "No description");
+            String status = (String) value.getOrDefault("status", "No status");
+
+            stringBuilder.append("Task ").append(key).append(":\n")
+                    .append("  Description: ").append(description).append("\n")
+                    .append("  Status: ").append(status).append("\n\n");
+        }
+
+        return stringBuilder.toString();
     }
 
-    public TreeMap<Integer, String> JsonToMap(){
-        ArrayList<String> keys = new ArrayList<>();
-        for(Object s: jsonObject.keySet()){
-            keys.add((String) s);
-        }
 
-        ArrayList<String> values = new ArrayList<>();
-        for(Object s: jsonObject.values()){
-            values.add((String) s);
-        }
-
-        TreeMap<Integer, String> res = new TreeMap<>();
-        for(int i =0; i<keys.size(); i++){
-            res.put(Integer.parseInt(keys.get(i)), values.get(i));
-        }
-
-        return res;
+    @SuppressWarnings("unchecked")
+    public String addTask(String description){
+        JSONObject detail = new JSONObject();
+        detail.put("description", description);
+        detail.put("status", "none");
+        nexID++;
+        jsonObject.put(Integer.toString(nexID), detail);
+        return  "Output: Task added successfully (ID: "+nexID+")";
     }
+
+
+    public void removeTask(String id){
+        jsonObject.remove(id);
+    }
+
+
+    @SuppressWarnings("unchecked")
+    public void updateTask(String id,String newDescription){
+        JSONObject prev = (JSONObject) jsonObject.get(id);
+        prev.put("description", newDescription);
+    }
+
+    @SuppressWarnings("unchecked")
+    public void inProgressTask(String id){
+        JSONObject prev = (JSONObject) jsonObject.get(id);
+        prev.put("status", "In progress");
+    }
+
+    @SuppressWarnings("unchecked")
+    public void doneTask(String id){
+        JSONObject prev = (JSONObject) jsonObject.get(id);
+        prev.put("status", "Done");
+    }
+
+
     public void writeOut() throws IOException {
-        FileWriter writer = new FileWriter(dbFileName);
-        JSONObject resJsonObject = new JSONObject();
-        for (Integer i : taksIdMap.keySet()){
-            resJsonObject.put(i, taksIdMap.get(i));
+        FileWriter write = new FileWriter(dbFileName);
+        write.write(jsonObject.toJSONString());
+        write.flush();
+        write.close();
+    }
+
+    private HashMap<String, JSONObject> jsonObjectToMap(JSONObject obj) {
+        HashMap<String, JSONObject> res = new HashMap<>();
+        for(Object k: obj.keySet()){
+            res.put((String) k, (JSONObject) jsonObject.get(k));
         }
-        writer.write(resJsonObject.toJSONString());
-        writer.flush();
+        return res;
     }
 }
