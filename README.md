@@ -3,8 +3,7 @@
 
 # Project Name
 
-A Task tracker with simple feature created as a learning project.
-
+A Task tracker with simple feature created as a learning project from [roadmap.sh](https://roadmap.sh/projects/task-tracker).
 ## 🚀 Features
 
 - add/remove task
